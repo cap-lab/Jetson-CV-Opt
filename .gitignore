@@ -1,0 +1,9 @@
+# Ignore  *.rt and *.onnx files
+*.rt
+*.onnx
+
+# Ignore build files
+*.cache
+
+# Ignore output files
+*.json
