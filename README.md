@@ -2,7 +2,7 @@
 
 **Jetson Computer Vision Optimization**
 
-This repository contains the code and materials related to our work on optimizing computer vision workloads for NVIDIA Jetson platforms.
+This repository contains test configuration files and data related to our work on optimizing computer vision workloads for NVIDIA Jetson platforms.
 
 The corresponding paper has been submitted.  
-We will release the full source code and provide detailed documentation soon.
+We will upload the full configuation files and input models including instructions soon.
