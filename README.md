@@ -4,10 +4,24 @@
 
 This repository contains test configuration files and data related to our work on optimizing computer vision workloads for NVIDIA Jetson platforms.
 
+Our framework enables high-throughput, NPU-accelerated inference for ONNX-based models on Jetson AGX Orin by combining mixed-precision inference, updated calibration tables, and activation replacement techniques—achieving minimal accuracy loss.
+
+<!-- graphics -->
+
 ## 📚 Table of Contents
 
 - [Benchmark Results](#benchmark-results) 
+  * [Classification](#classification)
+  * [Detection](#detection)
 - [Installation](#installation)   
+  * [Requirements](#requirements)
+  * [Prerequisites](#prerequisites)
+  * [Directory Structure](#directory-structure)
+  * [Installation & Build](#installation--build)
+  * [Usage](#usage)
+- [Training Hyperparameters](#training-hyperparameters)
+  * [YOLO Quantization-Aware Training (QAT)](#yolo-quantization-aware-training-qat)
+  * [Activation Fine-Tuning](#activation-fine-tuning)
 
 ## 📊 Benchmark Results
 
@@ -50,20 +64,25 @@ All input sizes match each model’s original training configuration.
 
 ### Detection
 
-| Model Name    | Target | mAP(val.) | mAP(test) | FPS |
+All classification results are reported using a confidence threshold of 0.1 during evaluation.
+
+| Model Name    | Target | mAP(test) | mAP(val.) | FPS |
 |---------------|--------|-----------|-----------|-----|
 | yolov9_t      | acc    | 35.4%     | 35.0%     | 508 |
 | yolov9_t      | pareto | 35.2%     | 34.7%     | 694 |
 | yolov9_t      | fps    | 35.0%     | 34.6%     | 732 |
-| yolov9_c      | acc    | 49.0%     | 49.2%     | 161 |
+| yolov9_c      | acc    | 49.4%     | 49.2%     | 161 |
 | yolov9_c      | pareto | 49.2%     | 48.9%     | 181 |
-| yolov9_c      | fps    | 48.8%     | 48.6%     | 222 |
+| yolov9_c      | fps    | 48.8%     | 48.4%     | 222 |
 | yolov9_c_relu | acc    | 48.6%     | 48.1%     | 163 |
 | yolov9_c_relu | pareto | 48.4%     | 48.1%     | 247 |
 | yolov9_c_relu | fps    | 48.2%     | 48.1%     | 309 |
 | yolov9_e      | acc    | 52.0%     | 51.7%     | 49  |
 | yolov9_e      | pareto | 51.9%     | 51.5%     | 52  |
 | yolov9_e      | fps    | 51.4%     | 51.4%     | 61  |
+
+---
+<br/><br/><br/>
 
 ## 🔧 Installation
 
@@ -103,17 +122,36 @@ Before building and running the application on **NVIDIA Jetson AGX Orin**, make 
    Energy usage was computed by multiplying the average power (W) with total execution time.
 
 5. **Model Format**
-   Benchmark networks must be exported to the ONNX format before execution. Pre-converted models can be downloaded from the Releases tab. Models from Hugging Face timm are supported, but ensure that they use static input shapes (i.e., batch size = 1).
+   Benchmark networks must be exported to the ONNX format before execution. Pre-converted models can be downloaded from the [Releases](https://github.com/cap-lab/Jetson-CV-Opt/releases) tab. Models from Hugging Face timm are supported, but ensure that they use static input shapes (i.e., batch size = 1).
 
 ---
 
-### 📥 1. Clone and Initialize Submodules
+### 📂 Directory Structure
+
+```
+.
+├── calibration_tables   # Calibration tables for INT8 quantization, incl. DLA support
+├── configs              # Benchmark configuration files
+├── data
+│   ├── coco2017         # COCO 2017 validation & test data
+│   └── imagenet12       # ImageNet-1K validation data
+├── engines              # Generated TensorRT engine files (.rt)
+├── onnx                 # ONNX models
+└── run
+```
+Please download or symlink the [coco2017](https://cocodataset.org/#download) and [imagenet12](https://www.image-net.org/download.php) datasets into `data` folder.
+
+### 🏗️ Installation & Build
+
+1. Clone and Initialize Submodules
 
 ```bash
+git clone https://github.com/cap-lab/Jetson-CV-Opt.git
+cd Jetson-CV-Opt
 git submodule update --init --recursive
 ```
 
-### 🏗️ 2. Build the Project
+2. Build the Project
 
 ```bash
 mkdir -p run/build
@@ -122,8 +160,110 @@ cmake ..
 make -j
 ```
 
-### 🚀 3. Run an Example
+### 🚀 Usage
+
+1. Prepare Data and Models
+
+Download or symlink [imagenet12](https://www.image-net.org/download.php) and [coco2017](https://cocodataset.org/#download) datasets to the data directory.
+
+Download ONNX models from the [Releases](https://github.com/cap-lab/Jetson-CV-Opt/releases) page and place them in the onnx directory.
+
+2. Run Inference Examples
+
+- Classification
+```bash
+./run/build/bin/proc -c configs/mobileone_s1_fps.cfg
+```
+
+- Detection
+```bash
+./run/build/bin/proc -c configs/yolov9_t_fps.cfg -r coco_results.json
+```
+
+3. Evaluate Detection Results
 
 ```bash
-./run/build/bin/proc -c configs/yolov9_t_fps.cfg
+python evaluate.py coco_results.json [instance_val.json]
 ```
+
+---
+<br/><br/><br/>
+
+
+## Training Hyperparameters
+
+This section summarizes the key training hyperparameters and fine-tuning procedures used for quantization and activation replacement experiments.
+Detection models (YOLOv9) were trained on a single NVIDIA A6000 GPU. Classification models were trained on four RTX 4090 GPUs, four RTX 3090 GPUs, or a single A6000.
+
+### YOLO Quantization-Aware Training (QAT)
+
+#### Results
+
+|    Model Name   | FP32 | INT8 | QAT  |
+|:---------------:|------|------|------|
+| Yolov9-T        | 35.1 | 29.4 | 34.7 |
+| Yolov9-C        | 49.2 | 42.4 | 48.8 |
+| Yolov9-C (ReLU) | 48.1 | 46.8 | 48.1 |
+| Yolov9-E        | 51.7 | 43.5 | 51.5 |
+
+#### Hyperparameter Settings
+
+All training parameters follow the [YOLOv9 QAT repository](https://github.com/levipereira/yolov9-qat).
+- Image size: 640 × 640
+
+---
+
+### Activation Fine-Tuning
+
+#### Results
+
+|      Model Name     | GeLU  | ReLU  | SiLU  |
+|:-------------------:|-------|-------|-------|
+| ConvMixer-1536/20   | 81.37 | 79.21 | 79.95 |
+| EfficientFormerV2-L | 83.63 | 81.92 | 82.85 |
+| FastVit-MA36        | 84.61 | 83.86 | 84.18 |
+
+#### Hyperparameter Settings
+
+NVIDIA Orin DLA does not support certain activation functions, such as GeLU. To maximize DLA compatibility, all GeLU activations were replaced with SiLU, followed by brief fine-tuning. For comparison, results with ReLU activations are also reported.
+
+- Seed: 42 (for all runs, for reproducibility)
+
+| Parameter (ReLU)    | ConvMixer-1536/20 | EfficientFormerV2-L | FastVit-MA36   |
+| ------------------- | ----------------- | ------------------- | -------------- |
+| input-size          | 3,224,224         | 3,224,224           | 3,256,256      |
+| sched               | cosine            | cosine              | cosine         |
+| epochs              | 30                | 300                 | 100            |
+| decay-epochs        | -                 | 90                  | 90             |
+| decay-rate          | 0.1               | 0.1                 | 0.1            |
+| batch-size          | 64                | 128                 | 128            |
+| amp                 | true (float16)    | true (float16)      | true (float16) |
+| lr (initial)        | 3e-4              | 1e-5                | 3e-6           |
+| warmup-epochs       | 0                 | 5                   | 5              |
+| warmup-lr           | -                 | 1e-5                | 1e-6           |
+| opt                 | adamW             | adamW               | adamW          |
+| weight-decay        | 2e-5              | 0.025               | 0.05           |
+| drop-path           | -                 | -                   | 0.2            |
+| cooldown-epochs     | -                 | -                   | 10             |
+| workers             | 32                | 32                  | 32             |
+| GPU (Training)      | RTX 3090 x 4      | RTX 3090 x 4        | RTX 4090 x 4   |
+
+
+| Parameter (SiLU) | ConvMixer-1536/20 | EfficientFormerV2-L | FastVit-MA36   |
+| ---------------- | ----------------- | ------------------- | -------------- |
+| input-size       | 3,224,224         | 3,224,224           | 3,256,256      |
+| sched            | cosine            | cosine              | cosine         |
+| epochs           | 30                | 30                  | 100            |
+| decay-epochs     | -                 | 90                  | 90             |
+| decay-rate       | 0.1               | 0.1                 | 0.1            |
+| batch-size       | 64                | 128                 | 64             |
+| amp              | true (float16)    | true (float16)      | true (float16) |
+| lr (initial)     | 1e-5              | 1e-5                | 3e-6           |
+| warmup-epochs    | 0                 | 5                   | 5              |
+| warmup-lr        | -                 | 1e-5                | 1e-6           |
+| opt              | adamW             | adamW               | adamW          |
+| weight-decay     | 0.025             | 0.025               | 0.05           |
+| drop-path        | -                 | -                   | 0.2            |
+| cooldown-epochs  | -                 | -                   | 10             |
+| workers          | 8                 | 8                   | 32             |
+| GPU (Training)   | A6000             | A6000               | RTX 4090 x 4   |
