@@ -10,15 +10,15 @@ Our framework enables high-throughput, NPU-accelerated inference for ONNX-based 
 
 ## 📚 Table of Contents
 
-- [Benchmark Results](#benchmark-results) 
+- [Benchmark Results](#-benchmark-results) 
   * [Classification](#classification)
   * [Detection](#detection)
-- [Installation](#installation)   
-  * [Requirements](#requirements)
-  * [Prerequisites](#prerequisites)
-  * [Directory Structure](#directory-structure)
-  * [Installation & Build](#installation--build)
-  * [Usage](#usage)
+- [Installation](#-installation)   
+  * [Requirements](#-requirements)
+  * [Prerequisites](#%EF%B8%8F-prerequisites)
+  * [Directory Structure](#-directory-structure)
+  * [Installation & Build](#%EF%B8%8F-installation--build)
+  * [Usage](#-usage)
 - [Training Hyperparameters](#training-hyperparameters)
   * [YOLO Quantization-Aware Training (QAT)](#yolo-quantization-aware-training-qat)
   * [Activation Fine-Tuning](#activation-fine-tuning)
@@ -193,7 +193,7 @@ python evaluate.py coco_results.json [instance_val.json]
 ## Training Hyperparameters
 
 This section summarizes the key training hyperparameters and fine-tuning procedures used for quantization and activation replacement experiments.
-Detection models (YOLOv9) were trained on a single NVIDIA A6000 GPU. Classification models were trained on four RTX 4090 GPUs, four RTX 3090 GPUs, or a single A6000.
+Detection models (YOLOv9) were trained on a single NVIDIA A6000 GPU. Classification models were trained on four RTX 4090 GPUs, two RTX 3090 GPUs, or a single A6000.
 
 ### YOLO Quantization-Aware Training (QAT)
 
@@ -246,8 +246,9 @@ NVIDIA Orin DLA does not support certain activation functions, such as GeLU. To 
 | drop-path           | -                 | -                   | 0.2            |
 | cooldown-epochs     | -                 | -                   | 10             |
 | workers             | 32                | 32                  | 32             |
-| GPU (Training)      | RTX 3090 x 4      | RTX 3090 x 4        | RTX 4090 x 4   |
-
+| GPU (Fine-Tuning)   | RTX 3090 x 2      | RTX 3090 x 2        | RTX 4090 x 4   |
+| Fine-Tuning Time    | 400H              | 73H                 | 29H            |
+<!-- 399H 22m / 72H 50m / 28H 37m -->
 
 | Parameter (SiLU) | ConvMixer-1536/20 | EfficientFormerV2-L | FastVit-MA36   |
 | ---------------- | ----------------- | ------------------- | -------------- |
@@ -266,4 +267,5 @@ NVIDIA Orin DLA does not support certain activation functions, such as GeLU. To 
 | drop-path        | -                 | -                   | 0.2            |
 | cooldown-epochs  | -                 | -                   | 10             |
 | workers          | 8                 | 8                   | 32             |
-| GPU (Training)   | A6000             | A6000               | RTX 4090 x 4   |
+| GPU (Fine-Tuning)| A6000             | A6000               | RTX 4090 x 4   |
+| Fine-Tuning Time |                   |                     | 31h            |
