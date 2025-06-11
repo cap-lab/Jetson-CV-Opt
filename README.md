@@ -20,8 +20,8 @@ Our framework enables high-throughput, NPU-accelerated inference for ONNX-based 
   * [Installation & Build](#%EF%B8%8F-installation--build)
   * [Usage](#-usage)
 - [Training Hyperparameters](#training-hyperparameters)
-  * [YOLO Quantization-Aware Training (QAT)](#yolo-quantization-aware-training-qat)
   * [Activation Fine-Tuning](#activation-fine-tuning)
+  * [YOLO Quantization-Aware Training (QAT)](#yolo-quantization-aware-training-qat)
 
 ## 📊 Benchmark Results
 
@@ -91,6 +91,23 @@ All classification results are reported using a confidence threshold of 0.1 duri
 * **CMake** ≥ 3.2
 * **Make**
 
+### 📦 Python Requirements
+
+The following Python packages are required to run the benchmark and evaluation scripts:
+
+* `polygraphy==0.49.9`
+* `onnx==1.16.1`
+* `onnx_graphsurgeon==0.5.2`
+* `pycocotools==2.0.8`
+* `faster_coco_eval==1.6.5`
+
+All required packages are listed in the `requirements.txt` file.  
+Install all dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
 ### ⚙️ Prerequisites
 
 Before building and running the application on **NVIDIA Jetson AGX Orin**, make sure to:
@@ -139,7 +156,10 @@ Before building and running the application on **NVIDIA Jetson AGX Orin**, make 
 ├── onnx                 # ONNX models
 └── run
 ```
-Please download or symlink the [coco2017](https://cocodataset.org/#download) and [imagenet12](https://www.image-net.org/download.php) datasets into `data` folder.
+**To prepare the datasets and models, follow these steps:**
+
+1. **First**, download or symlink the [coco2017](https://cocodataset.org/#download) and [imagenet12](https://www.image-net.org/download.php) datasets into the `data` folder.
+2. **Next**, download the required ONNX models from the [Releases](https://github.com/cap-lab/Jetson-CV-Opt/releases) page and place them in the `onnx` directory.
 
 ### 🏗️ Installation & Build
 
@@ -193,30 +213,13 @@ python evaluate.py coco_results.json [instance_val.json]
 ## Training Hyperparameters
 
 This section summarizes the key training hyperparameters and fine-tuning procedures used for quantization and activation replacement experiments.
-Detection models (YOLOv9) were trained on a single NVIDIA A6000 GPU. Classification models were trained on four RTX 4090 GPUs, two RTX 3090 GPUs, or a single A6000.
-
-### YOLO Quantization-Aware Training (QAT)
-
-#### Results
-
-|    Model Name   | FP32 | INT8 | QAT  |
-|:---------------:|------|------|------|
-| Yolov9-T        | 35.1 | 29.4 | 34.7 |
-| Yolov9-C        | 49.2 | 42.4 | 48.8 |
-| Yolov9-C (ReLU) | 48.1 | 46.8 | 48.1 |
-| Yolov9-E        | 51.7 | 43.5 | 51.5 |
-
-#### Hyperparameter Settings
-
-All training parameters follow the [YOLOv9 QAT repository](https://github.com/levipereira/yolov9-qat).
-- Image size: 640 × 640
-
----
+Classification models were trained on four RTX 4090 GPUs, two RTX 3090 GPUs, or a single A6000. Detection models (YOLOv9) were trained on a single NVIDIA A6000 GPU.
 
 ### Activation Fine-Tuning
 
 #### Results
 
+All results are evaluated on the ImageNet validation set.
 |      Model Name     | GeLU  | ReLU  | SiLU  |
 |:-------------------:|-------|-------|-------|
 | ConvMixer-1536/20   | 81.37 | 79.21 | 79.95 |
@@ -269,3 +272,22 @@ NVIDIA Orin DLA does not support certain activation functions, such as GeLU. To 
 | workers          | 8                 | 8                   | 32             |
 | GPU (Fine-Tuning)| A6000             | A6000               | RTX 4090 x 4   |
 | Fine-Tuning Time |                   |                     | 31h            |
+
+---
+
+### YOLO Quantization-Aware Training (QAT)
+
+#### Results
+
+All results are evaluated on the COCO 2017 validation set.
+|    Model Name   | FP32 | INT8 | QAT  |
+|:---------------:|------|------|------|
+| Yolov9-T        | 35.1 | 29.4 | 34.7 |
+| Yolov9-C        | 49.2 | 42.4 | 48.8 |
+| Yolov9-C (ReLU) | 48.1 | 46.8 | 48.1 |
+| Yolov9-E        | 51.7 | 43.5 | 51.5 |
+
+#### Hyperparameter Settings
+
+All training parameters follow the [YOLOv9 QAT repository](https://github.com/levipereira/yolov9-qat).
+- Image size: 640 × 640

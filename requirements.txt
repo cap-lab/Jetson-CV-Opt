@@ -1,0 +1,5 @@
+polygraphy==0.49.9
+onnx==1.16.1
+onnx_graphsurgeon==0.5.2
+pycocotools==2.0.8
+faster_coco_eval==1.6.5
