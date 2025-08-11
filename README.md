@@ -69,17 +69,23 @@ All classification results are reported using a confidence threshold of 0.1 duri
 | Model Name    | Target | mAP(test) | mAP(val.) | FPS |
 |---------------|--------|-----------|-----------|-----|
 | yolov9_t      | acc    | 35.4%     | 35.0%     | 508 |
-| yolov9_t      | pareto | 35.2%     | 34.7%     | 694 |
-| yolov9_t      | fps    | 35.0%     | 34.6%     | 732 |
-| yolov9_c      | acc    | 49.4%     | 49.2%     | 161 |
-| yolov9_c      | pareto | 49.2%     | 48.9%     | 181 |
+| yolov9_t      | pareto | 35.2%     | 34.8%     | 710 |
+| yolov9_t      | fps    | 35.0%     | 34.5%     | 747 |
+| yolov9_c      | acc    | 49.4%     | 49.2%     | 210 |
+| yolov9_c      | pareto | 49.4%     | 49.2%     | 210 |
 | yolov9_c      | fps    | 48.8%     | 48.4%     | 222 |
 | yolov9_c_relu | acc    | 48.6%     | 48.1%     | 163 |
-| yolov9_c_relu | pareto | 48.4%     | 48.1%     | 247 |
-| yolov9_c_relu | fps    | 48.2%     | 48.1%     | 309 |
+| yolov9_c_relu | pareto | 48.5%     | 48.1%     | 286 |
+| yolov9_c_relu | fps    | 48.2%     | 48.1%     | 320 |
 | yolov9_e      | acc    | 52.0%     | 51.7%     | 49  |
-| yolov9_e      | pareto | 51.9%     | 51.5%     | 52  |
-| yolov9_e      | fps    | 51.4%     | 51.4%     | 61  |
+| yolov9_e      | pareto | 51.8%     | 50.9%     | 58  |
+| yolov9_e      | fps    | 51.7%     | 51.3%     | 61  |
+| yolov11_n     | acc    | 36.4%     | 36.1%     | 583  |
+| yolov11_n     | pareto | 36.3%     | 36.1%     | 693  |
+| yolov11_n     | fps    | 36.2%     | 35.9%     | 792  |
+| yolov11_l     | acc    | 49.8%     | 49.3%     | 146  |
+| yolov11_l     | pareto | 49.7%     | 49.2%     | 212  |
+| yolov11_l     | fps    | 49.5%     | 49.1%     | 233  |
 
 ---
 <br/><br/><br/>
@@ -286,6 +292,9 @@ All results are evaluated on the COCO 2017 validation set.
 | Yolov9-C        | 49.2 | 42.4 | 48.8 |
 | Yolov9-C (ReLU) | 48.1 | 46.8 | 48.1 |
 | Yolov9-E        | 51.7 | 43.5 | 51.5 |
+| Yolov11-N       | 36.1 | 34.7 | 35.7 |
+| Yolov11-L       | 49.4 | 48.2 | 49.0 |
+
 
 #### Hyperparameter Settings
 
